@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatbot Educativo - Enfermedades Infecciosas</title>
+  <style>
+    /* ESTILOS BÁSICOS Y DISEÑO VISUAL */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .chat-container {
+      width: 100%;
+      max-width: 600px;
+      background-color: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      height: 90vh;
+      overflow: hidden;
+    }
+
+    .chat-header {
+      background-color: #007bff;
+      color: #ffffff;
+      padding: 15px;
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    .chat-box {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* Mensajes del Chat */
+    .message {
+      max-width: 80%;
+      padding: 10px 14px;
+      border-radius: 15px;
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+
+    .bot-message {
+      background-color: #e9ecef;
+      color: #333333;
+      align-self: flex-start;
+      border-bottom-left-radius: 2px;
+    }
+
+    .user-message {
+      background-color: #007bff;
+      color: #ffffff;
+      align-self: flex-end;
+      border-bottom-right-radius: 2px;
+    }
+
+    /* Opciones y Botones */
+    .options-container {
+      padding: 10px 15px 15px 15px;
+      border-top: 1px solid #e0e0e0;
+      background-color: #fafafa;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .btn {
+      background-color: #ffffff;
+      border: 1px solid #007bff;
+      color: #007bff;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      text-align: left;
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    .btn:hover {
+      background-color: #007bff;
+      color: #ffffff;
+    }
+
+    .btn-reset {
+      border-color: #6c757d;
+      color: #6c757d;
+      text-align: center;
+      margin-top: 5px;
+    }
+
+    .btn-reset:hover {
+      background-color: #6c757d;
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+
+<div class="chat-container">
+  <div class="chat-header">
+    🤖 Chatbot: Enfermedades Infecciosas
+  </div>
+
+  <!-- Zona donde aparecen las conversaciones -->
+  <div class="chat-box" id="chatBox">
+    <div class="message bot-message">
+      ¡Hola! Selecciona una enfermedad para comenzar a consultar su información científica:
+    </div>
+  </div>
+
+  <!-- Zona donde se muestran los botones interactivos -->
+  <div class="options-container" id="optionsContainer">
+    <!-- Se llena dinámicamente mediante JavaScript -->
+  </div>
+</div>
+
+<script>
+  /* ========================================================
+     BASE DE DATOS DE LAS ENFERMEDADES (AQUÍ EDITAS TU INFORMACIÓN)
+     ======================================================== */
+  const baseDeDatos = {
+    "chagas": {
+      etiological_agent: "Trypanosoma cruzi",
+      diagnosis: "Examen de gota gruesa, frotis sanguíneo,ELISA",
+      treatment: "Antiparasitario de primera línea",
+      active_ingredient: "Benznidazol o Nifurtimox",
+      dosage: "Según esquema por peso y edad",
+      mechanism_action: "Generación de radicales libres e inhibición de macromoléculas",
+      target_structure: "ADN y procesos metabólicos esenciales del parásito",
+      prevention: "Control de chinches vecinales, mejora de vivienda, tamizaje en bancos de sangre",
+      public_health: "Enfermedad desatendida de alta prevalencia rural",
+      sources: "Guías del Ministerio de Salud / OPS"
+    }
+  };
+
+  /* ========================================================
+     LÓGICA DEL CHATBOT (JAVASCRIPT)
+     ======================================================== */
+  let enfermedadSeleccionada = null;
+
+  const chatBox = document.getElementById("chatBox");
+  const optionsContainer = document.getElementById("optionsContainer");
+
+  // Función para agregar un mensaje en el chat
+  function agregarMensaje(texto, remitente) {
+    const msgDiv = document.createElement("div");
+    msgDiv.classList.add("message");
+    msgDiv.classList.add(remitente === "bot" ? "bot-message" : "user-message");
+    msgDiv.innerText = texto;
+    chatBox.appendChild(msgDiv);
+    chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll al final
+  }
+
+  // Muestra los botones con el listado de enfermedades
+  function mostrarMenuEnfermedades() {
+    optionsContainer.innerHTML = "";
+    enfermedadSeleccionada = null;
+
+    const listaEnfermedades = Object.keys(baseDeDatos);
+
+    listaEnfermedades.forEach(enfermedad => {
+      const btn = document.createElement("button");
+      btn.classList.add("btn");
+      btn.innerText = diseaseNameFormat(enfermedad);
+      btn.onclick = () => seleccionarEnfermedad(enfermedad);
+      optionsContainer.appendChild(btn);
+    });
+  }
+
+  // Da formato de texto visual a los nombres
+  function diseaseNameFormat(name) {
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  }
+
+  // Al seleccionar una enfermedad, muestra las preguntas
+  function seleccionarEnfermedad(enfermedad) {
+    enfermedadSeleccionada = enfermedad;
+    agregarMensaje(enfermedad, "user");
+    agregarMensaje(`Has seleccionado: ${enfermedad}. ¿Qué deseas saber sobre esta enfermedad?`, "bot");
+    mostrarPreguntas();
+  }
+
+  // Muestra el menú de preguntas requeridas
+  function mostrarPreguntas() {
+    optionsContainer.innerHTML = "";
+
+    const preguntas = [
+      { texto: "¿Cuál es el agente etiológico?", clave: "etiological_agent" },
+      { texto: "¿Cómo se diagnostica?", clave: "diagnosis" },
+      { texto: "¿Cuál es el tratamiento?", clave: "treatment" },
+      { texto: "¿Cuál es la posología?", clave: "dosage" },
+      { texto: "¿Cuál es el mecanismo de acción?", clave: "mechanism_action" },
+      { texto: "¿Sobre qué actúa el medicamento?", clave: "target_structure" },
+      { texto: "¿Cómo se previene?", clave: "prevention" },
+      { texto: "¿Cuál es su importancia en salud pública?", clave: "public_health" },
+      { texto: "Ver fuentes.", clave: "sources" }
+    ];
+
+    preguntas.forEach(p => {
+      const btn = document.createElement("button");
+      btn.classList.add("btn");
+      btn.innerText = p.texto;
+      btn.onclick = () => responderPregunta(p.texto, p.clave);
+      optionsContainer.appendChild(btn);
+    });
+
+    // Botón para volver a seleccionar otra enfermedad
+    const btnVolver = document.createElement("button");
+    btnVolver.classList.add("btn", "btn-reset");
+    btnVolver.innerText = "⬅️ Cambiar de enfermedad";
+    btnVolver.onclick = () => {
+      agregarMensaje("Quiero consultar otra enfermedad.", "user");
+      agregarMensaje("Por favor selecciona una enfermedad de la lista:", "bot");
+      mostrarMenuEnfermedades();
+    };
+    optionsContainer.appendChild(btnVolver);
+  }
+
+  // Muestra la respuesta científica según la opción elegida
+  function responderPregunta(preguntaTexto, clave) {
+    agregarMensaje(preguntaTexto, "user");
+    
+    let respuesta = baseDeDatos[enfermedadSeleccionada][clave];
+
+    // Tratamiento incluye el principio activo
+    if (clave === "treatment") {
+      const principioActivo = baseDeDatos[enfermedadSeleccionada]["active_ingredient"];
+      respuesta = `${respuesta}\n\nPrincipio activo: ${principioActivo}`;
+    }
+
+    setTimeout(() => {
+      agregarMensaje(respuesta, "bot");
+    }, 300);
+  }
+
+  // Inicializar el chatbot al cargar la página
+  mostrarMenuEnfermedades();
+</script>
+
+</body>
+</html>
